@@ -1,5 +1,6 @@
 package com.example.ecommerce.configuration;
 
+import com.example.ecommerce.security.jwt.JwtConfigurer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,6 +10,7 @@ import org.springframework.security.config.annotation.web.WebSecurityConfigurer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 
 
 @Configuration
@@ -17,11 +19,13 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
-//    @Bean
-//    @Override
-//    public AuthenticationManager authenticationManagerBean() throws Exception {
-//        return super.authenticationManagerBean();
-//    }
+    private final JwtConfigurer jwtConfigurer;
+
+    @Bean
+    @Override
+    public AuthenticationManager authenticationManagerBean() throws Exception {
+        return super.authenticationManagerBean();
+    }
 
 
     @Override
@@ -29,7 +33,13 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         http
                 .cors().and().csrf().disable().authorizeRequests()
                 .and()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
                 .authorizeRequests()
-                .antMatchers("/api/v1/registration/**").permitAll();
+                .antMatchers("/api/v1/registration/**",
+                        "/api/v1/auth/login").permitAll()
+                .anyRequest().authenticated()
+                .and()
+                .apply(jwtConfigurer);
     }
 }
